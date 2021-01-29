@@ -8,5 +8,6 @@ import java.util.List;
 
 @Repository
 public interface ScaleWorkplaceCrudRepository extends CrudRepository<ScaleWorkplace, Long> {
-    List<ScaleWorkplace> findbyWorkplace(int wp);
+    List<ScaleWorkplace> findByWorkPlace(int wp);
+
 }

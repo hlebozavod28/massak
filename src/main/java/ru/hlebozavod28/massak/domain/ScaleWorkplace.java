@@ -10,7 +10,7 @@ import javax.persistence.*;
 @Setter
 @EqualsAndHashCode
 @ToString
-@Table(name = "scaleworkplace", schema = "workplace")
+@Table(name = "scaleworkplace", schema = "workplaces")
 public class ScaleWorkplace {
     @Id
     @GeneratedValue

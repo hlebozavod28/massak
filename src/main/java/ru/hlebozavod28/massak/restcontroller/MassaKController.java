@@ -58,7 +58,7 @@ public class MassaKController {
     private String newHandCart(@RequestParam(value = "workplace") int workplace) {
         AtomicReference<String> ret = new AtomicReference<>("1");
         List<ScaleWorkplace> scalesList;
-        scalesList = scaleWorkplaceCrudRepository.findbyWorkplace(workplace);
+        scalesList = scaleWorkplaceCrudRepository.findByWorkPlace(workplace);
         for (ScaleWorkplace scalewp : scalesList) {
             int scaleNumber = scalewp.getScaleNumber();
             Optional<MassaKScale> findScale= massaKScaleCrudRepository.getById(scaleNumber);
