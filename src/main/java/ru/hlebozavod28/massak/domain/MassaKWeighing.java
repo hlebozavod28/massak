@@ -8,7 +8,7 @@ import javax.persistence.*;
 import java.sql.Timestamp;
 
 @Entity
-@Table(name = "sclaseweighing", schema = "workplaces")
+@Table(name = "scaleweighing", schema = "workplaces")
 @Getter
 @Setter
 @NoArgsConstructor
