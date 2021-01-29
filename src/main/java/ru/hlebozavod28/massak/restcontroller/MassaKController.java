@@ -71,7 +71,7 @@ public class MassaKController {
                 Variant oc = Dispatch.call(scale, "OpenConnection");
                 if (oc.getInt() == 0) {
                     Dispatch.call(scale, "ReadWeight");
-                    int st = Dispatch.get(scale, "Stable").getInt();
+                    //int st = Dispatch.get(scale, "Stable").getInt();
                     int weight = Dispatch.get(scale, "Weight").getInt();
                     log.info("weight=" + weight);
                     massaKWeighingCrudRepository.save(new MassaKWeighing(weight, 0, workplace));
