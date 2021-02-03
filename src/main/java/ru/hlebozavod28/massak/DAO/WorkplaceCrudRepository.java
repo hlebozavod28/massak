@@ -2,10 +2,12 @@ package ru.hlebozavod28.massak.DAO;
 
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
-import ru.hlebozavod28.massak.domain.MassaKScale;
+import ru.hlebozavod28.massak.domain.Workplace;
+
 import java.util.Optional;
 
 @Repository
-public interface MassaKScaleCrudRepository extends CrudRepository<MassaKScale, Long> {
-    Optional<MassaKScale> getById(long id);
+public interface WorkplaceCrudRepository extends CrudRepository<Workplace, Long> {
+    Optional<Workplace> findById(long id);
+
 }
