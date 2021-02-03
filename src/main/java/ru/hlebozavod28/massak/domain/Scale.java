@@ -11,7 +11,7 @@ import java.util.List;
 public class Scale {
     @Id
     @GeneratedValue
-    private Long id;
+    private long id;
     @Column(name = "ipaddr", nullable = false, unique = true)
     private String ipaddr;
     @ManyToMany(targetEntity = Workplace.class)
