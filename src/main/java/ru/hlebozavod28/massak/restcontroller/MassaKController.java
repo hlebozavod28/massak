@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import ru.hlebozavod28.massak.DAO.ScaleCrudRepository;
 import ru.hlebozavod28.massak.DAO.WeightingCrudRepository;
 import ru.hlebozavod28.massak.DAO.WorkplaceCrudRepository;
 import ru.hlebozavod28.massak.domain.Scale;
@@ -19,8 +18,6 @@ import java.util.concurrent.TimeUnit;
 @Log4j2
 @RestController
 public class MassaKController {
-    @Autowired
-    private ScaleCrudRepository scaleCrudRepository;
     @Autowired
     private WorkplaceCrudRepository workplaceCrudRepository;
     @Autowired

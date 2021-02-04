@@ -2,6 +2,7 @@ package ru.hlebozavod28.massak.domain;
 
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
@@ -20,10 +21,15 @@ public class Weighting {
     @Column(name = "weighting_timestamp", nullable = false)
     @CreationTimestamp
     Timestamp weightingTimestamp;
+    @Column(name = "change_timestamp", updatable = false)
+    @UpdateTimestamp
+    Timestamp changeTimestamp;
     @Column(name = "scale_id", nullable = false)
     long scaleId;
     @Column(name = "workplace_id", nullable = false)
     long workPlaceId;
+    @Column(name = "completed")
+    boolean completed;
 
     public Weighting(int initialWeight, long scaleId, long workPlaceId) {
         this.initialWeight = initialWeight;
