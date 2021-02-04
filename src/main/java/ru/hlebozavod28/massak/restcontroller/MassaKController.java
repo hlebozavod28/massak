@@ -95,6 +95,13 @@ public class MassaKController {
                 }
                 int weight = Dispatch.get(scale, "Weight").getInt();
                 log.info("  weight=" + weight);
+                // find old weighting
+                var oldWeighting = weightingCrudRepository.findByScaleIdAndWorkPlaceIdAndCompleted(sc.getId(), workPlace.getId(), false);
+                for (Weighting wt : oldWeighting) {
+                    wt.setFinalWeight(weight);
+                    wt.setCompleted(true);
+                    weightingCrudRepository.save(wt);
+                }
             } else {
                 log.error("cant get data from scale " + ipaddr + " error=" + oc.getInt());
             }
