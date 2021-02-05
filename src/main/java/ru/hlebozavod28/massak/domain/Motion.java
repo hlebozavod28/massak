@@ -17,10 +17,10 @@ public class Motion {
     @Id
     @GeneratedValue
     long id;
-    @Column(name = "handcart_id", nullable = false)
-    long handcardId;
     @Column(name = "workplace_id", nullable = false)
     long workplaceId;
+    @Column(name = "handcart_id", nullable = false)
+    long handcartId;
     @Column(name = "sub_workplace")
     int subWorkplace;
     @CreationTimestamp
@@ -33,10 +33,17 @@ public class Motion {
     int productCode;
     @Column(name = "amount")
     BigDecimal amount;
+    @Column(name = "defect_count")
+    BigDecimal defectCount;
+    @Column(name = "sheets")
+    int sheets;
+    @Column(name = "deleted")
+    boolean deleted;
 
-    public Motion(long workplaceId, long handcardId, int productCode) {
-        this.handcardId = handcardId;
+    public Motion(long workplaceId, long handcartId, int productCode, int sheets) {
+        this.handcartId = handcartId;
         this.workplaceId = workplaceId;
         this.productCode = productCode;
+        this.sheets = sheets;
     }
 }
