@@ -20,10 +20,10 @@ public class Weighting {
     int initialWeight;
     @Column(name = "final_weight")
     int finalWeight;
-    @Column(name = "weighting_timestamp", nullable = false)
+    @Column(name = "initial_timestamp", nullable = false)
     @CreationTimestamp
     Timestamp weightingTimestamp;
-    @Column(name = "change_timestamp", updatable = false)
+    @Column(name = "final_timestamp")
     @UpdateTimestamp
     Timestamp changeTimestamp;
     @Column(name = "scale_id", nullable = false)
@@ -32,6 +32,8 @@ public class Weighting {
     long workPlaceId;
     @Column(name = "completed")
     boolean completed;
+    @Column(name = "deleted")
+    boolean deleted;
 
     public Weighting(int initialWeight, long scaleId, long workPlaceId) {
         this.initialWeight = initialWeight;
