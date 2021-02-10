@@ -3,9 +3,9 @@ package ru.hlebozavod28.massak.restcontroller;
 import com.jacob.activeX.ActiveXComponent;
 import com.jacob.com.Dispatch;
 import com.jacob.com.Variant;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,7 +18,7 @@ import java.sql.Timestamp;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-@Log4j2
+@Slf4j
 @RestController
 public class MassaKController {
     @Autowired
@@ -85,7 +85,7 @@ public class MassaKController {
 
 
     @GetMapping("/outhandcart")
-    private String outHandCart(@RequestParam(value = "workplace") long workplace_id, @RequestParam(value = "handcart") long handcart_id) throws NoRecordException, InterruptedException {
+    private ResponseEntity<String> outHandCart(@RequestParam(value = "workplace") long workplace_id, @RequestParam(value = "handcart") long handcart_id) throws NoRecordException, InterruptedException {
         var workPlace = workplaceCrudRepository.findById(workplace_id).orElseThrow(() -> new NoRecordException(workplace_id));
         log.info("Out handcart from workolace " + workPlace.getWorkPlaceName());
         int retCode = 0;
@@ -144,7 +144,7 @@ public class MassaKController {
             motion.setAmount(productCount);
             motionJpa.save(motion);
         }
-        return Integer.toString(retCode);
+        return ResponseEntity.ok(Integer.toString(retCode));
     }
     @GetMapping("/deletehadcart")
     private String deleteHandCart(@RequestParam(value = "workplace") long workplace_id,
@@ -163,7 +163,7 @@ public class MassaKController {
             }
         }
         // delete from motions
-        Motion motion2del = motionJpa.findFirstByWorkplaceIdAndHandcartIdAndDeletedFalseOrderByIdDesc(workplace_id, handcart_id).orElseThrow(() -> new NoRecordException(workplace_id));
+        Motion motion2del = motionJpa.findFirstByWorkplaceIdAndHandcartIdAndDeletedFalseOrderByIdDesc(workplace_id, handcart_id).orElseThrow(() -> new NoRecordException());
         log.info("delete handcart from motion");
         motion2del.setDeleted(true);
         motionJpa.save(motion2del);
@@ -174,7 +174,7 @@ public class MassaKController {
     private String deleteHandCart(@RequestParam(value = "workplace") long workplace_id,
                                 @RequestParam(value = "handcart") long handcart_id,
                                 @RequestParam(value = "sheets") int sheets) throws NoRecordException {
-        Motion motionChange = motionJpa.findFirstByWorkplaceIdAndHandcartIdAndDeletedFalseOrderByIdDesc(workplace_id, handcart_id).orElseThrow(() -> new NoRecordException(workplace_id));
+        Motion motionChange = motionJpa.findFirstByWorkplaceIdAndHandcartIdAndDeletedFalseOrderByIdDesc(workplace_id, handcart_id).orElseThrow(() -> new NoRecordException());
         log.info("change sheet for workplace " + workplace_id + " and handcart " + handcart_id + " to " + sheets);
         motionChange.setSheets(sheets);
         motionJpa.save(motionChange);
@@ -184,7 +184,6 @@ public class MassaKController {
 }
 
 class NoRecordException extends Exception {
-    NoRecordException(long recnum) {
-        super("no record find " + recnum);
-    }
+    NoRecordException(long recnum) {super("no record find " + recnum);}
+    NoRecordException() {super("no record find");}
 }
