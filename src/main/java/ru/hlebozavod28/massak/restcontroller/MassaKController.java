@@ -130,9 +130,9 @@ public class MassaKController {
                     .orElseThrow(() -> new NoRecordException(Long.valueOf(motion.getProductCode()))).get();
             BigDecimal defectCount = new BigDecimal(defectWeight);
             log.info("defect weight=" + defectCount);
-            BigDecimal oneWeight = product.getWeight().multiply(new BigDecimal(1000));
+            BigDecimal oneWeight = product.getWeightdough().multiply(new BigDecimal(1000));
             log.info("one product weight=" + oneWeight);
-            defectCount = defectCount.divide(oneWeight).setScale(0, RoundingMode.HALF_UP);
+            defectCount = defectCount.divide(oneWeight, 0, RoundingMode.HALF_UP);
             log.info("defect count=" + defectCount);
             motion.setDefectCount(defectCount);
             BigDecimal productCount = new BigDecimal(product.getSheetalloc());

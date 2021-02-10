@@ -12,7 +12,7 @@ import java.sql.Timestamp;
 @Data
 @Entity
 @NoArgsConstructor
-@Table(name = "handcard_motion", schema = "workplaces")
+@Table(name = "handcart_motion", schema = "workplaces")
 public class Motion {
     @Id
     @GeneratedValue
