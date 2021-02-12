@@ -16,4 +16,8 @@ public class HandcardSheets {
     int id;
     long handcart;
     int sheets;
+
+    public HandcardSheets(int sheets) {
+        this.sheets = sheets;
+    }
 }
