@@ -11,4 +11,5 @@ import java.util.Optional;
 public interface MotionJpa extends JpaRepository<Motion, Long> {
     List<Motion> findByWorkplaceIdAndHandcartIdAndAmountNullAndDeletedFalse(long workplaceId, long handcartId);
     Optional<Motion> findFirstByWorkplaceIdAndHandcartIdAndDeletedFalseOrderByIdDesc(long workplaceId, long handcartId);
+    Optional<Motion> findFirstByWorkplaceIdAndDeletedFalseOrderByIdDesc(long workplaceId);
 }

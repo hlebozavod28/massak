@@ -16,7 +16,6 @@ import ru.hlebozavod28.massak.domain.*;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.Timestamp;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -51,7 +50,7 @@ public class MassaKController {
             log.info("delete wrong motion");
             motionJpa.save(delmotion);
         }
-        int defaultSheetsInt = Integer.valueOf(defaultSheetsStr);
+        int defaultSheetsInt = Integer.parseInt(defaultSheetsStr);
         Motion motion = motionJpa.save(new Motion(workplace_id, handcart_id, product_id,
                 handcardSheetsJpa.getByHandcart(handcart_id).orElse(new HandcardSheets(defaultSheetsInt)).getSheets()));
         // weighting
@@ -132,7 +131,7 @@ public class MassaKController {
             }
 
             // calculate amount
-            Product product = productCrudRepository.findById(Long.valueOf(motion.getProductCode())).orElseThrow(NoRecordFindException::new);
+            Product product = productCrudRepository.findById((long) motion.getProductCode()).orElseThrow(NoRecordFindException::new);
             BigDecimal defectCount = new BigDecimal(defectWeight);
             log.info("defect weight=" + defectCount);
             BigDecimal oneWeight = product.getWeightdough().multiply(new BigDecimal(1000));
@@ -161,8 +160,13 @@ public class MassaKController {
             }
         }
         // delete from motions
-        Motion motion2del = motionJpa.findFirstByWorkplaceIdAndHandcartIdAndDeletedFalseOrderByIdDesc(workplace_id, handcart_id).orElseThrow(NoRecordFindException::new);
-        log.info("delete handcart from motion");
+        log.info("delete handcart from motion workplace= " + workplace_id + " handcart=" + handcart_id);
+        Motion motion2del;
+        if (handcart_id == 0) {
+            motion2del = motionJpa.findFirstByWorkplaceIdAndDeletedFalseOrderByIdDesc(workplace_id).orElseThrow(NoRecordFindException::new);
+        } else {
+            motion2del = motionJpa.findFirstByWorkplaceIdAndHandcartIdAndDeletedFalseOrderByIdDesc(workplace_id, handcart_id).orElseThrow(NoRecordFindException::new);
+        }
         motion2del.setDeleted(true);
         motionJpa.save(motion2del);
         return "0";
@@ -175,12 +179,16 @@ public class MassaKController {
         Motion motionChange = motionJpa.findFirstByWorkplaceIdAndHandcartIdAndDeletedFalseOrderByIdDesc(workplace_id, handcart_id).orElseThrow(NoRecordFindException::new);
         log.info("change sheet for workplace " + workplace_id + " and handcart " + handcart_id + " to " + sheets + " (id=" + motionChange.getId() + ")");
         motionChange.setSheets(sheets);
-        recalcMotion(motionChange);
+        if (motionChange.getAmount() == null) {
+            motionJpa.save(motionChange);
+        } else {
+            recalcMotion(motionChange);
+        }
         return "0";
     }
 
     private void recalcMotion(Motion motion) {
-        Product product = productCrudRepository.findById(Long.valueOf(motion.getProductCode())).orElseThrow(NoRecordFindException::new);
+        Product product = productCrudRepository.findById((long) motion.getProductCode()).orElseThrow(NoRecordFindException::new);
         BigDecimal prodOfSheet = new BigDecimal(product.getSheetalloc());
         var sheets = new BigDecimal(motion.getSheets());
         BigDecimal defectCount = motion.getDefectCount();
