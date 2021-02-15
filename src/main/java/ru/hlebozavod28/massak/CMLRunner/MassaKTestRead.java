@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class MassaKTestRead implements CommandLineRunner{
     @Override
-    public void run(String... args){
-        log.info(System.getProperty("java.library.path"));
+    public void run(String... args) {
+        //log.info(System.getProperty("java.library.path"));
     }
 }

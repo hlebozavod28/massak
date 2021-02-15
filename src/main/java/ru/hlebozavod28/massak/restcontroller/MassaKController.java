@@ -44,10 +44,10 @@ public class MassaKController {
         log.info("New hand cart in workplace " + workPlace.getWorkPlaceName());
         int retCode = 0;
         // cart motion
-        var oldmotion = motionJpa.findByWorkplaceIdAndHandcartIdAndAmountNullAndDeletedFalse(workplace_id, handcart_id);
+        var oldmotion = motionJpa.findByWorkplaceIdAndAmountNullAndDeletedFalse(workplace_id);
         for (Motion delmotion : oldmotion) {
             delmotion.setDeleted(true);
-            log.info("delete wrong motion");
+            log.info("delete wrong motion id=" + delmotion.getId());
             motionJpa.save(delmotion);
         }
         int defaultSheetsInt = Integer.parseInt(defaultSheetsStr);
