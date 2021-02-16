@@ -1,13 +1,11 @@
-package ru.hlebozavod28.massak;
+package ru.hlebozavod28.massak
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.SpringApplication
 
 @SpringBootApplication
-public class MassakApplication {
+class MassakApplication
 
-	public static void main(String[] args) {
-		SpringApplication.run(MassakApplication.class, args);
-	}
-
+fun main(args: Array<String>) {
+    SpringApplication.run(MassakApplication::class.java, *args)
 }

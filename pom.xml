@@ -15,7 +15,8 @@
 	<description>massak web service</description>
 	<properties>
 		<java.version>11</java.version>
-	</properties>
+        <kotlin.version>1.4.30-RC</kotlin.version>
+    </properties>
 
 	<repositories>
 		<repository>
@@ -63,7 +64,12 @@
 			<scope>system</scope>
 			<systemPath>${project.basedir}/src/main/resources/local-repo/jacob.jar</systemPath>
 		</dependency>
-	</dependencies>
+        <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-stdlib-jdk8</artifactId>
+            <version>${kotlin.version}</version>
+        </dependency>
+    </dependencies>
 
 	<build>
 		<plugins>
@@ -74,7 +80,32 @@
 					<includeSystemScope>true</includeSystemScope>
 				</configuration>
 			</plugin>
-		</plugins>
+            <plugin>
+                <groupId>org.jetbrains.kotlin</groupId>
+                <artifactId>kotlin-maven-plugin</artifactId>
+                <version>${kotlin.version}</version>
+
+				<configuration>
+					<compilerPlugins>
+						<plugin>all-open</plugin>
+					</compilerPlugins>
+
+					<pluginOptions>
+						<!-- Каждая аннотация размещена на отдельной строке -->
+						<option>all-open:annotation=org.springframework.boot.autoconfigure.SpringBootApplication</option>
+					</pluginOptions>
+				</configuration>
+
+				<dependencies>
+					<dependency>
+						<groupId>org.jetbrains.kotlin</groupId>
+						<artifactId>kotlin-maven-allopen</artifactId>
+						<version>${kotlin.version}</version>
+					</dependency>
+
+				</dependencies>
+            </plugin>
+        </plugins>
 	</build>
 
 </project>
