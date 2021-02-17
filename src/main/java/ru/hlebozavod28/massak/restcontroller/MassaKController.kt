@@ -1,11 +1,9 @@
 package ru.hlebozavod28.massak.restcontroller
 
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import kotlin.Throws
 import java.lang.InterruptedException
-import org.springframework.web.bind.annotation.RequestParam
 import com.jacob.activeX.ActiveXComponent
 import com.jacob.com.Dispatch
 import com.jacob.com.Variant
@@ -20,22 +18,13 @@ import java.util.concurrent.TimeUnit
 import java.util.logging.Logger
 
 @RestController
-class MassaKController {
-    @Autowired
-    private val workplaceCrudRepository: WorkplaceCrudRepository? = null
-
-    @Autowired
-    private lateinit var weightingCrudRepository: WeightingCrudRepository
-
-    @Autowired
-    private lateinit var motionJpa: MotionJpa
-
-    @Autowired
-    private lateinit var handcartSheetsJpa: HandcartSheetsJpa
-
-    @Autowired
-    private lateinit var productCrudRepository: ProductCrudRepository
-
+class MassaKController(
+    private val workplaceCrudRepository: WorkplaceCrudRepository,
+    private val weightingCrudRepository: WeightingCrudRepository,
+    private val motionJpa: MotionJpa,
+    private val handcartSheetsJpa: HandcartSheetsJpa,
+    private val productCrudRepository: ProductCrudRepository
+) {
     @Value("\${hlebozavod28.handcartdefaultsheets}")
     private val defaultSheetsStr: String? = null
 
@@ -45,23 +34,19 @@ class MassaKController {
 
     @GetMapping("/inhandcart")
     @Throws(InterruptedException::class)
-    private fun inHandCart(
-        @RequestParam(value = "workplace") workplace_id: Long,
-        @RequestParam(value = "handcart") handcart_id: Long,
-        @RequestParam(value = "productcode") product_id: Int
-    ): String {
+    private fun inHandCart( workplace: Long, handcart: Long, productcode: Int): String {
         retCode = 0
-        workplaceCrudRepository!!.findById(workplace_id)?.apply {
-            log.info("New hand cart in workplace " + workPlaceName)
+        workplaceCrudRepository.findById(workplace)?.apply {
+            log.info("New hand cart in workplace $workPlaceName")
 
             // cart motion
-            motionJpa.findByWorkplaceIdAndAmountNullAndDeletedFalse(workplace_id).forEach {
+            motionJpa.findByWorkplaceIdAndAmountNullAndDeletedFalse(workplace).forEach {
                 it.deleted = true
                 log.info("delete wrong motion id=" + it.id)
                 motionJpa.save(it)
             }
-            val sheets = (handcartSheetsJpa.getByHandcart(handcart_id)?: HandcartSheets(defaultSheetsStr!!.toInt())).sheets
-            motionJpa.save( Motion(workplace_id, handcart_id, product_id, sheets) )
+            val sheets = (handcartSheetsJpa.getByHandcart(handcart)?: HandcartSheets(defaultSheetsStr!!.toInt())).sheets
+            motionJpa.save( Motion(workplace, handcart, productcode, sheets) )
             // weighting
             for (sc in scales) {
                 log.info(" scale=" + sc.ipaddr)
@@ -102,16 +87,13 @@ class MassaKController {
 
     @GetMapping("/outhandcart")
     @Throws(InterruptedException::class)
-    private fun outHandCart(
-        @RequestParam(value = "workplace") workplace_id: Long,
-        @RequestParam(value = "handcart") handcart_id: Long
-    ): ResponseEntity<String> {
+    private fun outHandCart(workplace: Long, handcart: Long): ResponseEntity<String> {
         retCode = 0
-        workplaceCrudRepository!!.findById(workplace_id)?.apply {
-            log.info("Out handcart from workolace " + workPlaceName)
+        workplaceCrudRepository.findById(workplace)?.apply {
+            log.info("Out handcart from workolace $workPlaceName")
 
             // write to motion
-            val newMotions = motionJpa.findHandCart(workplace_id, handcart_id)
+            val newMotions = motionJpa.findHandCart(workplace, handcart)
             for (motion in newMotions) {
                 motion.outTs = Timestamp(System.currentTimeMillis())
                 var defectWeight = 0
@@ -143,13 +125,10 @@ class MassaKController {
     }
 
     @GetMapping("/deletehadcart")
-    private fun deleteHandCart(
-        @RequestParam(value = "workplace") workplace_id: Long,
-        @RequestParam(value = "handcart") handcart_id: Long
-    ): String {
+    private fun deleteHandCart(workplace: Long, handcart: Long): String {
         // delete from weighting
-        workplaceCrudRepository!!.findById(workplace_id)?.apply {
-            log.info("Delete handcart from weighting " + workPlaceName)
+        workplaceCrudRepository.findById(workplace)?.apply {
+            log.info("Delete handcart from weighting $workPlaceName")
             for (sc in scales) {
                 // find old weighting
                 weightingCrudRepository.findWeightings(sc.id, id).forEach {
@@ -159,11 +138,11 @@ class MassaKController {
                 }
             }
             // delete from motions
-            log.info("delete handcart from motion workplace= $workplace_id handcart=$handcart_id")
-            val motion2del = if (handcart_id == 0L) {
-                motionJpa.findFirstByWorkplaceIdAndDeletedFalseOrderByIdDesc(workplace_id)
+            log.info("delete handcart from motion workplace= $workplace handcart=$handcart")
+            val motion2del = if (handcart == 0L) {
+                motionJpa.findFirstByWorkplaceIdAndDeletedFalseOrderByIdDesc(workplace)
             } else {
-                motionJpa.findFirstByWorkplaceIdAndHandcartIdAndDeletedFalseOrderByIdDesc(workplace_id, handcart_id)
+                motionJpa.findFirstByWorkplaceIdAndHandcartIdAndDeletedFalseOrderByIdDesc(workplace, handcart)
             } ?: throw NoRecordFindException()
             motion2del.deleted = true
             motionJpa.save(motion2del)
@@ -172,15 +151,11 @@ class MassaKController {
     }
 
     @GetMapping("/changehadcart")
-    private fun deleteHandCart(
-        @RequestParam(value = "workplace") workplace_id: Long,
-        @RequestParam(value = "handcart") handcart_id: Long,
-        @RequestParam(value = "sheets") sheets: Int
-    ): String {
+    private fun changeHandCart(workplace: Long, handcart: Long, sheets: Int): String {
         val motionChange =
-            motionJpa.findFirstByWorkplaceIdAndHandcartIdAndDeletedFalseOrderByIdDesc(workplace_id, handcart_id)
+            motionJpa.findFirstByWorkplaceIdAndHandcartIdAndDeletedFalseOrderByIdDesc(workplace, handcart)
                 ?: throw NoRecordFindException()
-        log.info("change sheet for workplace " + workplace_id + " and handcart " + handcart_id + " to " + sheets + " (id=" + motionChange.id + ")")
+        log.info("change sheet for workplace $workplace and handcart $handcart to $sheets (id=${motionChange.id})")
         motionChange.sheets = sheets
         motionChange.amount?.let {
             motionJpa.save(motionChange)
