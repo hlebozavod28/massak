@@ -1,13 +1,11 @@
-package ru.hlebozavod28.massak.DAO;
+package ru.hlebozavod28.massak.DAO
 
-import org.springframework.data.repository.CrudRepository;
-import org.springframework.stereotype.Repository;
-import ru.hlebozavod28.massak.domain.Workplace;
-
-import java.util.Optional;
+import org.springframework.data.repository.CrudRepository
+import org.springframework.stereotype.Repository
+import ru.hlebozavod28.massak.domain.Workplace
+import java.util.*
 
 @Repository
-public interface WorkplaceCrudRepository extends CrudRepository<Workplace, Long> {
-    Optional<Workplace> findById(long id);
-
+interface WorkplaceCrudRepository : CrudRepository<Workplace, Long?> {
+    fun findById(id: Long): Workplace?
 }

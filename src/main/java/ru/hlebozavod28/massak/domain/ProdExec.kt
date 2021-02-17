@@ -1,32 +1,29 @@
-package ru.hlebozavod28.massak.domain;
+package ru.hlebozavod28.massak.domain
 
-import lombok.Data;
+import javax.persistence.GeneratedValue
+import java.math.BigDecimal
+import java.sql.Date
+import javax.persistence.Entity
+import javax.persistence.Id
+import javax.persistence.Table
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Table;
-import java.math.BigDecimal;
-import java.sql.Date;
-
-@Data
 @Entity
 @Table(name = "prodexec", schema = "baking")
-public class ProdExec {
+class ProdExec {
     @Id
     @GeneratedValue
-    int id;
-    Date prod_date;
-    int prod_smena;
-    int prod_id;
-    BigDecimal number_line_kg;
-    int number_line_items;
-    BigDecimal number_proof_kg;
-    int number_proof_items;
-    BigDecimal number_baking_kg;
-    int number_baking_items;
-    BigDecimal number_cool_kg;
-    int number_cool_items;
-    BigDecimal number_pack_kg;
-    int number_pack_items;
+    var id = 0
+    var prod_date: Date? = null
+    var prod_smena = 0
+    var prod_id = 0
+    var number_line_kg: BigDecimal? = null
+    var number_line_items = 0
+    var number_proof_kg: BigDecimal? = null
+    var number_proof_items = 0
+    var number_baking_kg: BigDecimal? = null
+    var number_baking_items = 0
+    var number_cool_kg: BigDecimal? = null
+    var number_cool_items = 0
+    var number_pack_kg: BigDecimal? = null
+    var number_pack_items = 0
 }

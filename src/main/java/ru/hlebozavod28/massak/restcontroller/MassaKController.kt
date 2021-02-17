@@ -1,200 +1,204 @@
-package ru.hlebozavod28.massak.restcontroller;
+package ru.hlebozavod28.massak.restcontroller
 
-import com.jacob.activeX.ActiveXComponent;
-import com.jacob.com.Dispatch;
-import com.jacob.com.Variant;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import ru.hlebozavod28.massak.DAO.*;
-import ru.hlebozavod28.massak.domain.*;
+import org.springframework.web.bind.annotation.RestController
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.web.bind.annotation.GetMapping
+import kotlin.Throws
+import java.lang.InterruptedException
+import org.springframework.web.bind.annotation.RequestParam
+import com.jacob.activeX.ActiveXComponent
+import com.jacob.com.Dispatch
+import com.jacob.com.Variant
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.http.ResponseEntity
+import ru.hlebozavod28.massak.DAO.*
+import ru.hlebozavod28.massak.domain.*
+import java.math.BigDecimal
+import java.math.RoundingMode
+import java.sql.Timestamp
+import java.util.concurrent.TimeUnit
+import java.util.logging.Logger
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.sql.Timestamp;
-import java.util.concurrent.TimeUnit;
-
-@Slf4j
 @RestController
-public class MassaKController {
+class MassaKController {
     @Autowired
-    private WorkplaceCrudRepository workplaceCrudRepository;
-    @Autowired
-    private WeightingCrudRepository weightingCrudRepository;
-    @Autowired
-    private MotionJpa motionJpa;
-    @Autowired
-    private HandcardSheetsJpa handcardSheetsJpa;
-    @Autowired
-    private ProductCrudRepository productCrudRepository;
+    private val workplaceCrudRepository: WorkplaceCrudRepository? = null
 
-    @Value("${hlebozavod28.handcartdefaultsheets}")
-    private String defaultSheetsStr;
+    @Autowired
+    private lateinit var weightingCrudRepository: WeightingCrudRepository
 
+    @Autowired
+    private lateinit var motionJpa: MotionJpa
+
+    @Autowired
+    private lateinit var handcartSheetsJpa: HandcartSheetsJpa
+
+    @Autowired
+    private lateinit var productCrudRepository: ProductCrudRepository
+
+    @Value("\${hlebozavod28.handcartdefaultsheets}")
+    private val defaultSheetsStr: String? = null
+
+    private val log = Logger.getLogger(MassaKController::class.java.name)
+
+    private var retCode = 0
 
     @GetMapping("/inhandcart")
-    private String inHandCart(@RequestParam(value = "workplace") long workplace_id,
-                           @RequestParam(value = "handcart") long handcart_id,
-                           @RequestParam(value = "productcode") int product_id) throws InterruptedException {
-        var workPlace = workplaceCrudRepository.findById(workplace_id).orElseThrow(NoRecordFindException::new);
-        log.info("New hand cart in workplace " + workPlace.getWorkPlaceName());
-        int retCode = 0;
-        // cart motion
-        var oldmotion = motionJpa.findByWorkplaceIdAndAmountNullAndDeletedFalse(workplace_id);
-        for (Motion delmotion : oldmotion) {
-            delmotion.setDeleted(true);
-            log.info("delete wrong motion id=" + delmotion.getId());
-            motionJpa.save(delmotion);
-        }
-        int defaultSheetsInt = Integer.parseInt(defaultSheetsStr);
-        Motion motion = motionJpa.save(new Motion(workplace_id, handcart_id, product_id,
-                handcardSheetsJpa.getByHandcart(handcart_id).orElse(new HandcardSheets(defaultSheetsInt)).getSheets()));
-        // weighting
-        for (Scale sc : workPlace.getScales()) {
-            log.info(" scale=" + sc.getIpaddr());
-            // find old non completed
-            var oldBadWeighting = weightingCrudRepository.findByScaleIdAndWorkPlaceIdAndCompletedAndDeleted(sc.getId(), workPlace.getId(), false, false);
-            for (Weighting wt : oldBadWeighting) {
-                wt.setDeleted(true);
-                weightingCrudRepository.save(wt);
-                log.info(" deleting empty weighting");
+    @Throws(InterruptedException::class)
+    private fun inHandCart(
+        @RequestParam(value = "workplace") workplace_id: Long,
+        @RequestParam(value = "handcart") handcart_id: Long,
+        @RequestParam(value = "productcode") product_id: Int
+    ): String {
+        retCode = 0
+        workplaceCrudRepository!!.findById(workplace_id)?.apply {
+            log.info("New hand cart in workplace " + workPlaceName)
+
+            // cart motion
+            motionJpa.findByWorkplaceIdAndAmountNullAndDeletedFalse(workplace_id).forEach {
+                it.deleted = true
+                log.info("delete wrong motion id=" + it.id)
+                motionJpa.save(it)
             }
-            String ipaddr = sc.getIpaddr();
-            ActiveXComponent scale = new ActiveXComponent("MassaKDriver100.Scales");
-            Dispatch.put(scale, "Connection", new Variant(ipaddr));
-            Variant oc = Dispatch.call(scale, "OpenConnection");
-            if (oc.getInt() == 0) {
-                Dispatch.call(scale, "ReadWeight");
-                int st = Dispatch.get(scale, "Stable").getInt();
-                if (st==0) {
-                    log.info("  no stable, wait");
-                    TimeUnit.SECONDS.sleep(2);
-                    retCode = 100;
+            val sheets = (handcartSheetsJpa.getByHandcart(handcart_id)?: HandcartSheets(defaultSheetsStr!!.toInt())).sheets
+            motionJpa.save( Motion(workplace_id, handcart_id, product_id, sheets) )
+            // weighting
+            for (sc in scales) {
+                log.info(" scale=" + sc.ipaddr)
+                // find old non completed
+                weightingCrudRepository.findWeightings(sc.id, id).forEach {
+                    it.deleted = true
+                    weightingCrudRepository.save(it)
+                    log.info(" deleting empty weighting")
                 }
-                int weight = Dispatch.get(scale, "Weight").getInt();
-                log.info("  weight=" + weight);
-                weightingCrudRepository.save(new Weighting(weight, sc.getId(), workPlace.getId()));
-            } else {
-                log.error("cant get data from scale " + ipaddr + " error=" + oc.getInt());
-                retCode = oc.getInt();
+                getWeight(sc.ipaddr)?.let { weightingCrudRepository.save(Weighting(it, sc.id, id)) }
             }
-            Dispatch.call(scale, "CloseConnection");
-        }
-        return Integer.toString(retCode);
+        } ?: throw NoRecordFindException()
+        return retCode.toString()
     }
 
+    private fun getWeight(ipaddr: String?): Int? {
+        var weight: Int?  = null
+        val scale = ActiveXComponent("MassaKDriver100.Scales")
+        Dispatch.put(scale, "Connection", Variant(ipaddr))
+        val oc = Dispatch.call(scale, "OpenConnection")
+        if (oc.int == 0) {
+            Dispatch.call(scale, "ReadWeight")
+            val st = Dispatch.get(scale, "Stable").int
+            if (st == 0) {
+                log.info("  no stable, wait")
+                TimeUnit.SECONDS.sleep(2)
+                retCode = 100
+            }
+            weight = Dispatch.get(scale, "Weight").int
+            log.info("  weight=$weight")
+        } else {
+            log.severe("cant get data from scale " + ipaddr + " error=" + oc.int)
+            retCode = oc.int
+        }
+        Dispatch.call(scale, "CloseConnection")
+        return weight
+    }
 
     @GetMapping("/outhandcart")
-    private ResponseEntity<String> outHandCart(@RequestParam(value = "workplace") long workplace_id,
-                                               @RequestParam(value = "handcart") long handcart_id) throws InterruptedException {
-        var workPlace = workplaceCrudRepository.findById(workplace_id).orElseThrow(NoRecordFindException::new);
-        log.info("Out handcart from workolace " + workPlace.getWorkPlaceName());
-        int retCode = 0;
-        // write to motion
-        var newmotion = motionJpa.findByWorkplaceIdAndHandcartIdAndAmountNullAndDeletedFalse(workplace_id, handcart_id);
-        for (Motion motion : newmotion) {
-            motion.setOutTs(new Timestamp(System.currentTimeMillis()));
-            int defectWeight = 0;
-            for (Scale sc : workPlace.getScales()) {
-                log.info(" scale=" + sc.getIpaddr());
-                String ipaddr = sc.getIpaddr();
-                ActiveXComponent scale = new ActiveXComponent("MassaKDriver100.Scales");
-                Dispatch.put(scale, "Connection", new Variant(ipaddr));
-                Variant oc = Dispatch.call(scale, "OpenConnection");
-                if (oc.getInt() == 0) {
-                    Dispatch.call(scale, "ReadWeight");
-                    int st = Dispatch.get(scale, "Stable").getInt();
-                    if (st == 0) {
-                        log.info("  no stable, wait");
-                        TimeUnit.SECONDS.sleep(2);
-                        retCode = 100;
-                    }
-                    int weight = Dispatch.get(scale, "Weight").getInt();
-                    log.info("  weight=" + weight);
-                    // find old weighting
-                    var oldWeighting = weightingCrudRepository.findByScaleIdAndWorkPlaceIdAndCompletedAndDeleted(sc.getId(), workPlace.getId(), false, false);
-                    for (Weighting wt : oldWeighting) {
-                        wt.setFinalWeight(weight);
-                        wt.setCompleted(true);
-                        weightingCrudRepository.save(wt);
-                        defectWeight += wt.getFinalWeight() - wt.getInitialWeight();
-                    }
-                } else {
-                    log.error("cant get data from scale " + ipaddr + " error=" + oc.getInt());
-                    retCode = oc.getInt();
-                }
-                Dispatch.call(scale, "CloseConnection");
-            }
+    @Throws(InterruptedException::class)
+    private fun outHandCart(
+        @RequestParam(value = "workplace") workplace_id: Long,
+        @RequestParam(value = "handcart") handcart_id: Long
+    ): ResponseEntity<String> {
+        retCode = 0
+        workplaceCrudRepository!!.findById(workplace_id)?.apply {
+            log.info("Out handcart from workolace " + workPlaceName)
 
-            // calculate amount
-            Product product = productCrudRepository.findById((long) motion.getProductCode()).orElseThrow(NoRecordFindException::new);
-            BigDecimal defectCount = new BigDecimal(defectWeight);
-            log.info("defect weight=" + defectCount);
-            BigDecimal oneWeight = product.getWeightdough().multiply(new BigDecimal(1000));
-            log.info("one product weight=" + oneWeight);
-            defectCount = defectCount.divide(oneWeight, 0, RoundingMode.HALF_UP);
-            log.info("defect count=" + defectCount);
-            motion.setDefectCount(defectCount);
-            recalcMotion(motion);
-        }
-        return ResponseEntity.ok(Integer.toString(retCode));
-    }
-    @GetMapping("/deletehadcart")
-    private String deleteHandCart(@RequestParam(value = "workplace") long workplace_id,
-                                @RequestParam(value = "handcart") long handcart_id) {
-        // delete from weighting
-        var workPlace = workplaceCrudRepository.findById(workplace_id).orElseThrow(NoRecordFindException::new);
-        log.info("Delete handcart from weighting " + workPlace.getWorkPlaceName());
-        for (Scale sc : workPlace.getScales()) {
-            String ipaddr = sc.getIpaddr();
-            // find old weighting
-            var oldWeighting = weightingCrudRepository.findByScaleIdAndWorkPlaceIdAndCompletedAndDeleted(sc.getId(), workPlace.getId(), false, false);
-            for (Weighting wt : oldWeighting) {
-                wt.setDeleted(true);
-                weightingCrudRepository.save(wt);
-                log.info(" scale=" + sc.getIpaddr());
+            // write to motion
+            val newMotions = motionJpa.findHandCart(workplace_id, handcart_id)
+            for (motion in newMotions) {
+                motion.outTs = Timestamp(System.currentTimeMillis())
+                var defectWeight = 0
+                for (sc in scales) {
+                    log.info(" scale=" + sc.ipaddr)
+                    getWeight(sc.ipaddr)?.apply {
+                        weightingCrudRepository.findWeightings(sc.id, id).forEach {
+                            it.finalWeight = this
+                            it.completed = true
+                            weightingCrudRepository.save(it)
+                            defectWeight += it.finalWeight - it.initialWeight
+                        }
+                    }
+                }
+                // calculate amount
+                val product =
+                    productCrudRepository.findById(motion.productCode.toLong()).orElseThrow { NoRecordFindException() }
+                var defectCount = BigDecimal(defectWeight)
+                log.info("defect weight=$defectCount")
+                val oneWeight = product.weightdough.multiply(BigDecimal(1000))
+                log.info("one product weight=$oneWeight")
+                defectCount = defectCount.divide(oneWeight, 0, RoundingMode.HALF_UP)
+                log.info("defect count=$defectCount")
+                motion.defectCount = defectCount
+                recalcMotion(motion)
             }
-        }
-        // delete from motions
-        log.info("delete handcart from motion workplace= " + workplace_id + " handcart=" + handcart_id);
-        Motion motion2del;
-        if (handcart_id == 0) {
-            motion2del = motionJpa.findFirstByWorkplaceIdAndDeletedFalseOrderByIdDesc(workplace_id).orElseThrow(NoRecordFindException::new);
-        } else {
-            motion2del = motionJpa.findFirstByWorkplaceIdAndHandcartIdAndDeletedFalseOrderByIdDesc(workplace_id, handcart_id).orElseThrow(NoRecordFindException::new);
-        }
-        motion2del.setDeleted(true);
-        motionJpa.save(motion2del);
-        return "0";
+        } ?: throw NoRecordFindException()
+        return ResponseEntity.ok(retCode.toString())
+    }
+
+    @GetMapping("/deletehadcart")
+    private fun deleteHandCart(
+        @RequestParam(value = "workplace") workplace_id: Long,
+        @RequestParam(value = "handcart") handcart_id: Long
+    ): String {
+        // delete from weighting
+        workplaceCrudRepository!!.findById(workplace_id)?.apply {
+            log.info("Delete handcart from weighting " + workPlaceName)
+            for (sc in scales) {
+                // find old weighting
+                weightingCrudRepository.findWeightings(sc.id, id).forEach {
+                    it.deleted = true
+                    weightingCrudRepository.save(it)
+                    log.info(" scale=" + sc.ipaddr)
+                }
+            }
+            // delete from motions
+            log.info("delete handcart from motion workplace= $workplace_id handcart=$handcart_id")
+            val motion2del = if (handcart_id == 0L) {
+                motionJpa.findFirstByWorkplaceIdAndDeletedFalseOrderByIdDesc(workplace_id)
+            } else {
+                motionJpa.findFirstByWorkplaceIdAndHandcartIdAndDeletedFalseOrderByIdDesc(workplace_id, handcart_id)
+            } ?: throw NoRecordFindException()
+            motion2del.deleted = true
+            motionJpa.save(motion2del)
+        } ?: throw NoRecordFindException()
+        return "0"
     }
 
     @GetMapping("/changehadcart")
-    private String deleteHandCart(@RequestParam(value = "workplace") long workplace_id,
-                                @RequestParam(value = "handcart") long handcart_id,
-                                @RequestParam(value = "sheets") int sheets) {
-        Motion motionChange = motionJpa.findFirstByWorkplaceIdAndHandcartIdAndDeletedFalseOrderByIdDesc(workplace_id, handcart_id).orElseThrow(NoRecordFindException::new);
-        log.info("change sheet for workplace " + workplace_id + " and handcart " + handcart_id + " to " + sheets + " (id=" + motionChange.getId() + ")");
-        motionChange.setSheets(sheets);
-        if (motionChange.getAmount() == null) {
-            motionJpa.save(motionChange);
-        } else {
-            recalcMotion(motionChange);
+    private fun deleteHandCart(
+        @RequestParam(value = "workplace") workplace_id: Long,
+        @RequestParam(value = "handcart") handcart_id: Long,
+        @RequestParam(value = "sheets") sheets: Int
+    ): String {
+        val motionChange =
+            motionJpa.findFirstByWorkplaceIdAndHandcartIdAndDeletedFalseOrderByIdDesc(workplace_id, handcart_id)
+                ?: throw NoRecordFindException()
+        log.info("change sheet for workplace " + workplace_id + " and handcart " + handcart_id + " to " + sheets + " (id=" + motionChange.id + ")")
+        motionChange.sheets = sheets
+        motionChange.amount?.let {
+            motionJpa.save(motionChange)
+        } ?: run {
+            recalcMotion(motionChange)
         }
-        return "0";
+        return "0"
     }
 
-    private void recalcMotion(Motion motion) {
-        Product product = productCrudRepository.findById((long) motion.getProductCode()).orElseThrow(NoRecordFindException::new);
-        BigDecimal prodOfSheet = new BigDecimal(product.getSheetalloc());
-        var sheets = new BigDecimal(motion.getSheets());
-        BigDecimal defectCount = motion.getDefectCount();
-        BigDecimal amount = prodOfSheet.multiply(sheets).subtract(defectCount);
-        motion.setAmount(amount);
-        log.info("amount=" + sheets + " * " + prodOfSheet + " - " + defectCount + " = " + amount);
-        motionJpa.save(motion);
+    private fun recalcMotion(motion: Motion) {
+        val product =
+            productCrudRepository.findById(motion.productCode.toLong()).orElseThrow { NoRecordFindException() }
+        val prodOfSheet = BigDecimal(product.sheetalloc)
+        val sheets = BigDecimal(motion.sheets)
+        val defectCount = motion.defectCount
+        val amount = prodOfSheet.multiply(sheets).subtract(defectCount)
+        motion.amount = amount
+        log.info("amount=$sheets * $prodOfSheet - $defectCount = $amount")
+        motionJpa.save(motion)
     }
 }

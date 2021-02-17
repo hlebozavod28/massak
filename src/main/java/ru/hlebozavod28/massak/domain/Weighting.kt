@@ -1,43 +1,38 @@
-package ru.hlebozavod28.massak.domain;
+package ru.hlebozavod28.massak.domain
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.CreationTimestamp
+import org.hibernate.annotations.UpdateTimestamp
+import java.sql.Timestamp
+import javax.persistence.*
 
-import javax.persistence.*;
-import java.sql.Timestamp;
-
-@Data
-@NoArgsConstructor
 @Entity
 @Table(name = "weighting", schema = "workplaces")
-public class Weighting {
+class Weighting(
+    @Column(name = "initial_weight", nullable = false)
+    var initialWeight: Int,
+    @Column(name = "scale_id", nullable = false)
+    var scaleId: Long,
+    @Column(name = "workplace_id", nullable = false)
+    var workPlaceId: Long
+) {
     @Id
     @GeneratedValue
-    long id;
-    @Column(name = "initial_weight", nullable = false)
-    int initialWeight;
+    var id: Long = 0
+
     @Column(name = "final_weight")
-    int finalWeight;
+    var finalWeight = 0
+
     @Column(name = "initial_timestamp", nullable = false)
     @CreationTimestamp
-    Timestamp weightingTimestamp;
+    var weightingTimestamp: Timestamp? = null
+
     @Column(name = "final_timestamp")
     @UpdateTimestamp
-    Timestamp changeTimestamp;
-    @Column(name = "scale_id", nullable = false)
-    long scaleId;
-    @Column(name = "workplace_id", nullable = false)
-    long workPlaceId;
-    @Column(name = "completed")
-    boolean completed;
-    @Column(name = "deleted")
-    boolean deleted;
+    var changeTimestamp: Timestamp? = null
 
-    public Weighting(int initialWeight, long scaleId, long workPlaceId) {
-        this.initialWeight = initialWeight;
-        this.scaleId = scaleId;
-        this.workPlaceId = workPlaceId;
-    }
+    @Column(name = "completed")
+    var completed = false
+
+    @Column(name = "deleted")
+    var deleted = false
 }

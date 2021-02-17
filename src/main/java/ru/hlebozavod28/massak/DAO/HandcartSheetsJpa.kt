@@ -1,12 +1,10 @@
-package ru.hlebozavod28.massak.DAO;
+package ru.hlebozavod28.massak.DAO
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-import ru.hlebozavod28.massak.domain.HandcardSheets;
-
-import java.util.Optional;
+import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.stereotype.Repository
+import ru.hlebozavod28.massak.domain.HandcartSheets
 
 @Repository
-public interface HandcardSheetsJpa extends JpaRepository<HandcardSheets, Long> {
-    Optional<HandcardSheets> getByHandcart(long handcart);
+interface HandcartSheetsJpa : JpaRepository<HandcartSheets, Long?> {
+    fun getByHandcart(handcart: Long): HandcartSheets?
 }

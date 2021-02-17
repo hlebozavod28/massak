@@ -1,14 +1,13 @@
-package ru.hlebozavod28.massak.CMLRunner;
+package ru.hlebozavod28.massak.CMLRunner
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.stereotype.Component;
+import org.springframework.boot.CommandLineRunner
+import org.springframework.stereotype.Component
+import java.util.logging.Logger
 
-@Slf4j
 @Component
-public class MassaKTestRead implements CommandLineRunner{
-    @Override
-    public void run(String... args) {
-        //log.info(System.getProperty("java.library.path"));
+class MassaKTestRead : CommandLineRunner {
+    private val log = Logger.getLogger(MassaKTestRead::class.java.name)
+    override fun run(vararg args: String) {
+//        log.info(System.getProperty("java.library.path"));
     }
 }

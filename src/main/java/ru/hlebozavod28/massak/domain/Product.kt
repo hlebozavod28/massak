@@ -1,37 +1,35 @@
-package ru.hlebozavod28.massak.domain;
+package ru.hlebozavod28.massak.domain
 
-import lombok.Data;
+import java.math.BigDecimal
+import javax.persistence.*
 
-import javax.persistence.*;
-import java.math.BigDecimal;
-
-@Data
 @Entity
 @Table(name = "product", schema = "baking")
-public class Product {
+class Product {
     @Id
     @GeneratedValue
-    long id;
-    int placeid;
-    String name;
-    BigDecimal weightdough;
-    BigDecimal weight;
-    int sheetalloc;
-    int doughid;
-    int fillingid;
-    BigDecimal yieldprod;
-    int timeprepline;
-    int timeprepdoughmin;
-    int timeprepdoughmax;
-    int timecooler;
-    int timetolist;
+    var id: Long = 0
+    var placeid = 0
+    var name: String? = null
+    var weightdough: BigDecimal = 0.toBigDecimal()
+    var weight: BigDecimal? = null
+    var sheetalloc = 0
+    var doughid = 0
+    var fillingid = 0
+    var yieldprod: BigDecimal? = null
+    var timeprepline = 0
+    var timeprepdoughmin = 0
+    var timeprepdoughmax = 0
+    var timecooler = 0
+    var timetolist = 0
+
     @Column(name = "\"OUTPUT\"")
-    BigDecimal OUTPUT;
-    int timeproofmin;
-    int timeproofmax;
-    int timebakingmin;
-    int timebakingmax;
-    BigDecimal ovenoutput;
-    int timecooling;
-    BigDecimal packspeed;
+    var OUTPUT: BigDecimal? = null
+    var timeproofmin = 0
+    var timeproofmax = 0
+    var timebakingmin = 0
+    var timebakingmax = 0
+    var ovenoutput: BigDecimal? = null
+    var timecooling = 0
+    var packspeed: BigDecimal? = null
 }

@@ -1,19 +1,17 @@
-package ru.hlebozavod28.massak.domain;
+package ru.hlebozavod28.massak.domain
 
-import lombok.Data;
+import javax.persistence.*
 
-import javax.persistence.*;
-import java.util.List;
-
-@Data
 @Entity
 @Table(name = "workplaces", schema = "workplaces")
-public class Workplace {
+class Workplace {
     @Id
     @GeneratedValue
-    long id;
+    var id: Long = 0
+
     @Column(name = "workplace_name")
-    String WorkPlaceName;
+    var workPlaceName: String? = null
+
     @ManyToMany(mappedBy = "workplaces")
-    List<Scale> scales;
+    lateinit var scales: MutableList<Scale>
 }

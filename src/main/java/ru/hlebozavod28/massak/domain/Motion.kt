@@ -1,49 +1,44 @@
-package ru.hlebozavod28.massak.domain;
+package ru.hlebozavod28.massak.domain
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.CreationTimestamp
+import org.hibernate.annotations.UpdateTimestamp
+import java.math.BigDecimal
+import java.sql.Timestamp
+import javax.persistence.*
 
-import javax.persistence.*;
-import java.math.BigDecimal;
-import java.sql.Timestamp;
-
-@Data
 @Entity
-@NoArgsConstructor
 @Table(name = "handcart_motion", schema = "workplaces")
-public class Motion {
+class Motion(
+    @Column(name = "workplace_id", nullable = false)
+    var workplaceId: Long ,
+    @Column(name = "handcart_id", nullable = false)
+    var handcartId: Long ,
+    @Column(name = "product_code")
+    var productCode: Int ,
+    @Column(name = "sheets")
+    var sheets: Int
+) {
     @Id
     @GeneratedValue
-    long id;
-    @Column(name = "workplace_id", nullable = false)
-    long workplaceId;
-    @Column(name = "handcart_id", nullable = false)
-    long handcartId;
+    var id: Long = 0
+
     @Column(name = "sub_workplace")
-    int subWorkplace;
+    var subWorkplace = 0
+
     @CreationTimestamp
     @Column(name = "in_timestamp", nullable = false, updatable = false)
-    Timestamp inTs;
+    var inTs: Timestamp? = null
+
     @UpdateTimestamp
     @Column(name = "out_timestamp")
-    Timestamp outTs;
-    @Column(name = "product_code")
-    int productCode;
-    @Column(name = "amount")
-    BigDecimal amount;
-    @Column(name = "defect_count")
-    BigDecimal defectCount;
-    @Column(name = "sheets")
-    int sheets;
-    @Column(name = "deleted")
-    boolean deleted;
+    var outTs: Timestamp? = null
 
-    public Motion(long workplaceId, long handcartId, int productCode, int sheets) {
-        this.handcartId = handcartId;
-        this.workplaceId = workplaceId;
-        this.productCode = productCode;
-        this.sheets = sheets;
-    }
+    @Column(name = "amount")
+    var amount: BigDecimal? = null
+
+    @Column(name = "defect_count")
+    var defectCount: BigDecimal? = null
+
+    @Column(name = "deleted")
+    var deleted = false
 }

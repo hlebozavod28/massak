@@ -1,16 +1,21 @@
-package ru.hlebozavod28.massak.DAO;
+package ru.hlebozavod28.massak.DAO
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-import ru.hlebozavod28.massak.domain.Motion;
-
-import java.util.List;
-import java.util.Optional;
+import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.stereotype.Repository
+import ru.hlebozavod28.massak.domain.Motion
+import java.util.*
 
 @Repository
-public interface MotionJpa extends JpaRepository<Motion, Long> {
-    List<Motion> findByWorkplaceIdAndHandcartIdAndAmountNullAndDeletedFalse(long workplaceId, long handcartId);
-    List<Motion> findByWorkplaceIdAndAmountNullAndDeletedFalse(long workplaceId);
-    Optional<Motion> findFirstByWorkplaceIdAndHandcartIdAndDeletedFalseOrderByIdDesc(long workplaceId, long handcartId);
-    Optional<Motion> findFirstByWorkplaceIdAndDeletedFalseOrderByIdDesc(long workplaceId);
+interface MotionJpa : JpaRepository<Motion, Long?> {
+    fun findByWorkplaceIdAndHandcartIdAndAmountNullAndDeletedFalse(workplaceId: Long, handcartId: Long): List<Motion>
+    fun findByWorkplaceIdAndAmountNullAndDeletedFalse(workplaceId: Long): List<Motion>
+    fun findFirstByWorkplaceIdAndHandcartIdAndDeletedFalseOrderByIdDesc(
+        workplaceId: Long,
+        handcartId: Long
+    ): Motion?
+
+    fun findFirstByWorkplaceIdAndDeletedFalseOrderByIdDesc(workplaceId: Long): Motion?
 }
+
+fun MotionJpa.findHandCart(workplaceId: Long, handcartId: Long): List<Motion>
+    = findByWorkplaceIdAndHandcartIdAndAmountNullAndDeletedFalse(workplaceId, handcartId)

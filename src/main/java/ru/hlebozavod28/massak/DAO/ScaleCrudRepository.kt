@@ -1,12 +1,11 @@
-package ru.hlebozavod28.massak.DAO;
+package ru.hlebozavod28.massak.DAO
 
-import org.springframework.data.repository.CrudRepository;
-import org.springframework.stereotype.Repository;
-import ru.hlebozavod28.massak.domain.Scale;
-
-import java.util.Optional;
+import org.springframework.data.repository.CrudRepository
+import org.springframework.stereotype.Repository
+import ru.hlebozavod28.massak.domain.Scale
+import java.util.*
 
 @Repository
-public interface ScaleCrudRepository extends CrudRepository<Scale, Long> {
-    Optional<Scale> getById(long id);
+interface ScaleCrudRepository : CrudRepository<Scale, Long?> {
+    fun getById(id: Long): Optional<Scale>
 }
