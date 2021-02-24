@@ -16,6 +16,11 @@ import ru.hlebozavod28.massak.domain.*;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneOffset;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -31,9 +36,17 @@ public class MassaKController {
     private HandcardSheetsJpa handcardSheetsJpa;
     @Autowired
     private ProductCrudRepository productCrudRepository;
+    @Autowired
+    private ProdExecJpa prodExecJpa;
 
     @Value("${hlebozavod28.handcartdefaultsheets}")
     private String defaultSheetsStr;
+    @Value("${hlebozavod28.smenastarttime}")
+    private  String smenaStartTime;
+    @Value("${hlebozavod28.smenaendtime}")
+    private  String smenaEndTime;
+    @Value("${hlebozavod28.smenaendhours}")
+    private int smenaEndHours;
 
 
     @GetMapping("/inhandcart")
@@ -188,6 +201,7 @@ public class MassaKController {
     }
 
     private void recalcMotion(Motion motion) {
+        BigDecimal oldAmount = Optional.of(motion.getAmount()).orElse(new BigDecimal("0.0"));
         Product product = productCrudRepository.findById((long) motion.getProductCode()).orElseThrow(NoRecordFindException::new);
         BigDecimal prodOfSheet = new BigDecimal(product.getSheetalloc());
         var sheets = new BigDecimal(motion.getSheets());
@@ -196,5 +210,20 @@ public class MassaKController {
         motion.setAmount(amount);
         log.info("amount=" + sheets + " * " + prodOfSheet + " - " + defectCount + " = " + amount);
         motionJpa.save(motion);
+        oldAmount = amount.subtract(oldAmount);
+        log.info(" prodexec=" + oldAmount);
+        LocalDateTime localDateTime = motion.getInTs().toInstant().atZone(ZoneOffset.UTC).toLocalDateTime();
+        LocalDate smenaDate = localDateTime.plusHours(smenaEndHours).toLocalDate();
+        LocalTime smetaTime = localDateTime.toLocalTime();
+        LocalTime startTime = LocalTime.parse(smenaStartTime);
+        LocalTime endTime = LocalTime.parse(smenaEndTime);
+        int smena = 1;
+        if (smetaTime.isAfter(startTime) & smetaTime.isBefore(endTime)) {
+            smena = 2;
+        }
+        ProdExec prodExec = prodExecJpa.findFirstByProd_dateProd_smenaProd_id(smenaDate, smena, motion.getProductCode())
+                .orElse(new ProdExec(smenaDate, smena, motion.getProductCode()));
+        prodExec.setNumber_line_items(prodExec.getNumber_line_items() + oldAmount.intValueExact());
+        prodExecJpa.save(prodExec);
     }
 }
