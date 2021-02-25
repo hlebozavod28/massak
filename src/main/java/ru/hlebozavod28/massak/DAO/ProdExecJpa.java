@@ -10,5 +10,5 @@ import java.util.Optional;
 
 @Repository
 public interface ProdExecJpa extends JpaRepository<ProdExec, Long> {
-    Optional<ProdExec> findFirstByProddateAndProdsmenaAndProdid(LocalDate prodDate, int prodSmena, int prodId);
+    Optional<ProdExec> findFirstByProdDateAndProdSmenaAndProdId(LocalDate prodDate, int prodSmena, int prodId);
 }

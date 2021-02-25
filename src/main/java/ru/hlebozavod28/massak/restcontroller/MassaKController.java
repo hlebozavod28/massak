@@ -222,7 +222,7 @@ public class MassaKController {
         if (smetaTime.isAfter(startTime) & smetaTime.isBefore(endTime)) {
             smena = 2;
         }
-        ProdExec prodExec = prodExecJpa.findFirstByProddateAndProdsmenaAndProdid(smenaDate, smena, motion.getProductCode())
+        ProdExec prodExec = prodExecJpa.findFirstByProdDateAndProdSmenaAndProdId(smenaDate, smena, motion.getProductCode())
                 .orElse(new ProdExec(smenaDate, smena, motion.getProductCode()));
         prodExec.setNumberLineItems(prodExec.getNumberLineItems() + oldAmount.intValueExact());
         prodExecJpa.save(prodExec);
