@@ -5,5 +5,5 @@ import org.springframework.stereotype.Repository;
 import ru.hlebozavod28.massak.domain.Product;
 
 @Repository
-public interface ProductJpa extends JpaRepository<Product, Long> {
+public interface ProductJpa extends JpaRepository<Product, Integer> {
 }
