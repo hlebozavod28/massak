@@ -36,7 +36,7 @@ public class MassaKController {
     @Autowired
     private HandcardSheetsJpa handcardSheetsJpa;
     @Autowired
-    private ProductCrudRepository productCrudRepository;
+    private ProductJpa productJpa;
     @Autowired
     private ProdExecJpa prodExecJpa;
 
@@ -145,10 +145,11 @@ public class MassaKController {
             }
 
             // calculate amount
-            Product product = productCrudRepository.findById((long) motion.getProductCode()).orElseThrow(NoRecordFindException::new);
+            log.info("calculate amount");
+            Product product = productJpa.findById((long) motion.getProductCode()).orElseThrow(NoRecordFindException::new);
             BigDecimal defectCount = new BigDecimal(defectWeight);
             log.info("defect weight=" + defectCount);
-            BigDecimal oneWeight = product.getWeightdough().multiply(new BigDecimal(1000));
+            BigDecimal oneWeight = product.getWeightDough().multiply(new BigDecimal(1000));
             log.info("one product weight=" + oneWeight);
             defectCount = defectCount.divide(oneWeight, 0, RoundingMode.HALF_UP);
             log.info("defect count=" + defectCount);
@@ -202,9 +203,10 @@ public class MassaKController {
     }
 
     private void recalcMotion(Motion motion) {
-        BigDecimal oldAmount = Optional.of(motion.getAmount()).orElse(new BigDecimal("0.0"));
-        Product product = productCrudRepository.findById((long) motion.getProductCode()).orElseThrow(NoRecordFindException::new);
-        BigDecimal prodOfSheet = new BigDecimal(product.getSheetalloc());
+        Optional<BigDecimal> oldAmountOpt = Optional.ofNullable(motion.getAmount());
+        BigDecimal oldAmount = oldAmountOpt.orElse(new BigDecimal("0.0"));
+        Product product = productJpa.findById((long) motion.getProductCode()).orElseThrow(NoRecordFindException::new);
+        BigDecimal prodOfSheet = new BigDecimal(product.getSheetAlloc());
         var sheets = new BigDecimal(motion.getSheets());
         BigDecimal defectCount = motion.getDefectCount();
         BigDecimal amount = prodOfSheet.multiply(sheets).subtract(defectCount);
@@ -215,11 +217,11 @@ public class MassaKController {
         log.info(" prodexec=" + oldAmount);
         LocalDateTime localDateTime = motion.getInTs().toInstant().atZone(ZoneOffset.UTC).toLocalDateTime();
         LocalDate smenaDate = localDateTime.plusHours(smenaEndHours).toLocalDate();
-        LocalTime smetaTime = localDateTime.toLocalTime();
+        LocalTime smenaTime = localDateTime.toLocalTime();
         LocalTime startTime = LocalTime.parse(smenaStartTime);
         LocalTime endTime = LocalTime.parse(smenaEndTime);
         int smena = 1;
-        if (smetaTime.isAfter(startTime) & smetaTime.isBefore(endTime)) {
+        if (smenaTime.isAfter(startTime) & smenaTime.isBefore(endTime)) {
             smena = 2;
         }
         ProdExec prodExec = prodExecJpa.findFirstByProdDateAndProdSmenaAndProdId(smenaDate, smena, motion.getProductCode())

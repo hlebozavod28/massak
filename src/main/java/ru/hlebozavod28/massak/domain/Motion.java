@@ -26,7 +26,7 @@ public class Motion {
     @CreationTimestamp
     @Column(name = "in_timestamp", nullable = false, updatable = false)
     Timestamp inTs;
-    @UpdateTimestamp
+    //@UpdateTimestamp
     @Column(name = "out_timestamp")
     Timestamp outTs;
     @Column(name = "product_code")
