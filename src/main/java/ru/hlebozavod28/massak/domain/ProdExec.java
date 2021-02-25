@@ -8,7 +8,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.sql.Date;
 
 @Data
 @NoArgsConstructor
@@ -18,7 +18,7 @@ public class ProdExec {
     @Id
     @GeneratedValue
     int id;
-    LocalDate prod_date;
+    Date prod_date;
     int prod_smena;
     int prod_id;
     BigDecimal number_line_kg;
@@ -32,7 +32,7 @@ public class ProdExec {
     BigDecimal number_pack_kg;
     int number_pack_items;
 
-    public ProdExec(LocalDate prod_date, int prod_smena, int prod_id) {
+    public ProdExec(Date prod_date, int prod_smena, int prod_id) {
         this.prod_date = prod_date;
         this.prod_smena = prod_smena;
         this.prod_id = prod_id;
