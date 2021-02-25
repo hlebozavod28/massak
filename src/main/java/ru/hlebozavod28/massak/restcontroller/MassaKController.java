@@ -214,7 +214,7 @@ public class MassaKController {
         oldAmount = amount.subtract(oldAmount);
         log.info(" prodexec=" + oldAmount);
         LocalDateTime localDateTime = motion.getInTs().toInstant().atZone(ZoneOffset.UTC).toLocalDateTime();
-        Date smenaDate = Date.valueOf(localDateTime.plusHours(smenaEndHours).toLocalDate());
+        LocalDate smenaDate = localDateTime.plusHours(smenaEndHours).toLocalDate();
         LocalTime smetaTime = localDateTime.toLocalTime();
         LocalTime startTime = LocalTime.parse(smenaStartTime);
         LocalTime endTime = LocalTime.parse(smenaEndTime);
@@ -222,9 +222,9 @@ public class MassaKController {
         if (smetaTime.isAfter(startTime) & smetaTime.isBefore(endTime)) {
             smena = 2;
         }
-        ProdExec prodExec = prodExecJpa.findFirstByProd_dateProd_smenaProd_id(smenaDate, smena, motion.getProductCode())
+        ProdExec prodExec = prodExecJpa.findFirstByProddateAndProdsmenaAndProdid(smenaDate, smena, motion.getProductCode())
                 .orElse(new ProdExec(smenaDate, smena, motion.getProductCode()));
-        prodExec.setNumber_line_items(prodExec.getNumber_line_items() + oldAmount.intValueExact());
+        prodExec.setNumberLineItems(prodExec.getNumberLineItems() + oldAmount.intValueExact());
         prodExecJpa.save(prodExec);
     }
 }

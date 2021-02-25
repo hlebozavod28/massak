@@ -3,12 +3,9 @@ package ru.hlebozavod28.massak.domain;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.math.BigDecimal;
-import java.sql.Date;
+import java.time.LocalDate;
 
 @Data
 @NoArgsConstructor
@@ -18,24 +15,37 @@ public class ProdExec {
     @Id
     @GeneratedValue
     int id;
-    Date prod_date;
-    int prod_smena;
-    int prod_id;
-    BigDecimal number_line_kg;
-    int number_line_items;
-    BigDecimal number_proof_kg;
-    int number_proof_items;
-    BigDecimal number_baking_kg;
-    int number_baking_items;
-    BigDecimal number_cool_kg;
-    int number_cool_items;
-    BigDecimal number_pack_kg;
-    int number_pack_items;
+    @Column(name = "prod_date")
+    LocalDate prodDate;
+    @Column(name = "prod_smena" )
+    int prodSmena;
+    @Column(name = "prod_id")
+    int prodId;
+    @Column(name = "number_line_kg")
+    BigDecimal numberLineKg;
+    @Column(name = "number_line_items")
+    int numberLineItems;
+    @Column(name = "number_proof_kg")
+    BigDecimal numberProofKg;
+    @Column(name = "number_proof_items")
+    int numberProofItems;
+    @Column(name = "number_baking_kg")
+    BigDecimal numberBakingKg;
+    @Column(name = "number_baking_items")
+    int numberBakingItems;
+    @Column(name = "number_cool_kg")
+    BigDecimal numberCoolKg;
+    @Column(name = "number_cool_items")
+    int numberCoolItems;
+    @Column(name = "number_pack_kg")
+    BigDecimal numberPackKg;
+    @Column(name = "number_pack_items")
+    int numberPackItems;
 
-    public ProdExec(Date prod_date, int prod_smena, int prod_id) {
-        this.prod_date = prod_date;
-        this.prod_smena = prod_smena;
-        this.prod_id = prod_id;
-        this.number_line_items = 0;
+    public ProdExec(LocalDate prod_date, int prod_smena, int prod_id) {
+        this.prodDate = prod_date;
+        this.prodSmena = prod_smena;
+        this.prodId = prod_id;
+        this.numberLineItems = 0;
     }
 }
