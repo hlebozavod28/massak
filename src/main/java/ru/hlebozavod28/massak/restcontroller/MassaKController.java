@@ -145,8 +145,7 @@ public class MassaKController {
             }
 
             // calculate amount
-            log.info("calculate amount");
-            Product product = productJpa.findById((long) motion.getProductCode()).orElseThrow(NoRecordFindException::new);
+            Product product = productJpa.findById((int) motion.getProductCode()).orElseThrow(NoRecordFindException::new);
             BigDecimal defectCount = new BigDecimal(defectWeight);
             log.info("defect weight=" + defectCount);
             BigDecimal oneWeight = product.getWeightDough().multiply(new BigDecimal(1000));
@@ -183,7 +182,7 @@ public class MassaKController {
             motion2del = motionJpa.findFirstByWorkplaceIdAndHandcartIdAndDeletedFalseOrderByIdDesc(workplace_id, handcart_id).orElseThrow(NoRecordFindException::new);
         }
         motion2del.setDeleted(true);
-        motionJpa.save(motion2del);
+        recalcMotion(motion2del);
         return "0";
     }
 
@@ -205,15 +204,22 @@ public class MassaKController {
     private void recalcMotion(Motion motion) {
         Optional<BigDecimal> oldAmountOpt = Optional.ofNullable(motion.getAmount());
         BigDecimal oldAmount = oldAmountOpt.orElse(new BigDecimal("0.0"));
-        Product product = productJpa.findById((long) motion.getProductCode()).orElseThrow(NoRecordFindException::new);
-        BigDecimal prodOfSheet = new BigDecimal(product.getSheetAlloc());
-        var sheets = new BigDecimal(motion.getSheets());
-        BigDecimal defectCount = motion.getDefectCount();
-        BigDecimal amount = prodOfSheet.multiply(sheets).subtract(defectCount);
-        motion.setAmount(amount);
-        log.info("amount=" + sheets + " * " + prodOfSheet + " - " + defectCount + " = " + amount);
-        motionJpa.save(motion);
-        oldAmount = amount.subtract(oldAmount);
+        var amount = new BigDecimal("0.0");
+        Product product = productJpa.findById((int) motion.getProductCode()).orElseThrow(NoRecordFindException::new);
+        if (!motion.isDeleted()) {
+            BigDecimal prodOfSheet = new BigDecimal(product.getSheetAlloc());
+            var sheets = new BigDecimal(motion.getSheets());
+            BigDecimal defectCount = motion.getDefectCount();
+            log.info("amount=" + sheets + " * " + prodOfSheet + " - " + defectCount + " = " + amount);
+            amount = prodOfSheet.multiply(sheets).subtract(defectCount);
+            motion.setAmount(amount);
+            motionJpa.save(motion);
+            oldAmount = amount.subtract(oldAmount);
+        } else {
+            oldAmount = new BigDecimal("0.0").subtract(motion.getDefectCount()).subtract(oldAmount);
+            log.info("delete, amount=" + oldAmount);
+        }
+        motionJpa.flush();
         log.info(" prodexec=" + oldAmount);
         LocalDateTime localDateTime = motion.getInTs().toInstant().atZone(ZoneOffset.UTC).toLocalDateTime();
         LocalDate smenaDate = localDateTime.plusHours(smenaEndHours).toLocalDate();
@@ -227,6 +233,8 @@ public class MassaKController {
         ProdExec prodExec = prodExecJpa.findFirstByProdDateAndProdSmenaAndProdId(smenaDate, smena, motion.getProductCode())
                 .orElse(new ProdExec(smenaDate, smena, motion.getProductCode()));
         prodExec.setNumberLineItems(prodExec.getNumberLineItems() + oldAmount.intValueExact());
+        BigDecimal prodKg = product.getWeightDough().multiply(new BigDecimal(prodExec.getNumberLineItems()));
+        prodExec.setNumberLineKg(prodKg);
         prodExecJpa.save(prodExec);
     }
 }
