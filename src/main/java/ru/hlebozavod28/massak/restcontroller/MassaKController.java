@@ -65,7 +65,7 @@ public class MassaKController {
             motionJpa.save(delmotion);
         }
         int defaultSheetsInt = Integer.parseInt(defaultSheetsStr);
-        Motion motion = motionJpa.save(new Motion(workplace_id, handcart_id, product_id,
+        motionJpa.save(new Motion(workplace_id, handcart_id, product_id,
                 handcardSheetsJpa.getByHandcart(handcart_id).orElse(new HandcardSheets(defaultSheetsInt)).getSheets()));
         // weighting
         for (Scale sc : workPlace.getScales()) {
@@ -145,7 +145,7 @@ public class MassaKController {
             }
 
             // calculate amount
-            Product product = productJpa.findById((int) motion.getProductCode()).orElseThrow(NoRecordFindException::new);
+            Product product = productJpa.findById(motion.getProductCode()).orElseThrow(NoRecordFindException::new);
             BigDecimal defectCount = new BigDecimal(defectWeight);
             log.info("defect weight=" + defectCount);
             BigDecimal oneWeight = product.getWeightDough().multiply(new BigDecimal(1000));
@@ -164,7 +164,6 @@ public class MassaKController {
         var workPlace = workplaceCrudRepository.findById(workplace_id).orElseThrow(NoRecordFindException::new);
         log.info("Delete handcart from weighting " + workPlace.getWorkPlaceName());
         for (Scale sc : workPlace.getScales()) {
-            String ipaddr = sc.getIpaddr();
             // find old weighting
             var oldWeighting = weightingCrudRepository.findByScaleIdAndWorkPlaceIdAndCompletedAndDeleted(sc.getId(), workPlace.getId(), false, false);
             for (Weighting wt : oldWeighting) {
@@ -205,7 +204,7 @@ public class MassaKController {
         Optional<BigDecimal> oldAmountOpt = Optional.ofNullable(motion.getAmount());
         BigDecimal oldAmount = oldAmountOpt.orElse(new BigDecimal("0.0"));
         var amount = new BigDecimal("0.0");
-        Product product = productJpa.findById((int) motion.getProductCode()).orElseThrow(NoRecordFindException::new);
+        Product product = productJpa.findById(motion.getProductCode()).orElseThrow(NoRecordFindException::new);
         if (!motion.isDeleted()) {
             BigDecimal prodOfSheet = new BigDecimal(product.getSheetAlloc());
             var sheets = new BigDecimal(motion.getSheets());
