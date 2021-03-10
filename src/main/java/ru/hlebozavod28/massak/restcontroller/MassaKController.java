@@ -15,7 +15,6 @@ import ru.hlebozavod28.massak.domain.*;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -220,7 +219,7 @@ public class MassaKController {
         }
         motionJpa.flush();
         log.info(" prodexec=" + oldAmount);
-        LocalDateTime localDateTime = motion.getInTs().toInstant().atZone(ZoneOffset.UTC).toLocalDateTime();
+        LocalDateTime localDateTime = motion.getInTs().toInstant().atZone(ZoneOffset.of("Europe/Moscow")).toLocalDateTime();
         LocalDate smenaDate = localDateTime.plusHours(smenaEndHours).toLocalDate();
         LocalTime smenaTime = localDateTime.toLocalTime();
         LocalTime startTime = LocalTime.parse(smenaStartTime);
