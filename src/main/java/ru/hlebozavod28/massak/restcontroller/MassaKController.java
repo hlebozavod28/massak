@@ -16,10 +16,7 @@ import ru.hlebozavod28.massak.domain.*;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.Timestamp;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZoneOffset;
+import java.time.*;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -208,8 +205,8 @@ public class MassaKController {
             BigDecimal prodOfSheet = new BigDecimal(product.getSheetAlloc());
             var sheets = new BigDecimal(motion.getSheets());
             BigDecimal defectCount = motion.getDefectCount();
-            log.info("amount=" + sheets + " * " + prodOfSheet + " - " + defectCount + " = " + amount);
             amount = prodOfSheet.multiply(sheets).subtract(defectCount);
+            log.info("amount=" + sheets + " * " + prodOfSheet + " - " + defectCount + " = " + amount);
             motion.setAmount(amount);
             motionJpa.save(motion);
             oldAmount = amount.subtract(oldAmount);
@@ -219,7 +216,7 @@ public class MassaKController {
         }
         motionJpa.flush();
         log.info(" prodexec=" + oldAmount);
-        LocalDateTime localDateTime = motion.getInTs().toInstant().atZone(ZoneOffset.of("Europe/Moscow")).toLocalDateTime();
+        LocalDateTime localDateTime = motion.getInTs().toInstant().atZone(ZoneId.of("Europe/Moscow")).toLocalDateTime();
         LocalDate smenaDate = localDateTime.plusHours(smenaEndHours).toLocalDate();
         LocalTime smenaTime = localDateTime.toLocalTime();
         LocalTime startTime = LocalTime.parse(smenaStartTime);
